@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="text/javascript" src="popup.js"></script>
+    
+    <link href="http://fonts.googleapis.com/css?family=Bitter:700" rel="stylesheet" type="text/css" />
+    <link href="http://fonts.googleapis.com/css?family=Cutive+Mono" rel="stylesheet" type="text/css" />
+    
+    <link rel="stylesheet" type="text/css" href="popup.css" />
+  </head>
+
+  <body>
+    <div id="filters" class="topbox">
+      <h3>Filter:</h3>
+      
+      <label>
+        <input type="radio" id="all_filter" name="filters" checked="checked" value=".*" />
+        * &lt;everything&gt;
+      </label>
+      
+      <label>
+        <input type="radio" id="zip_filter" name="filters" value=".*\.zip$" />
+        *.zip
+      </label>
+      
+      <label>
+        <input type="radio" id="targz_filter" name="filters" value=".*\.tar\.gz$" />
+        *.tar.gz
+      </label>
+      
+      <div id="custom">
+        <input type="radio" id="custom_filter" name="filters" />
+        <input type="text" id="filter" placeholder="Filter" />
+        <label>
+          <input type="checkbox" id="regex" />
+          Regex?
+        </label>
+      </div>
+      
+    </div>
+    
+    <div id="buttons" class="topbox">
+      <h3>Actions:</h3>
+      <button id="secondLevel">Get Next Level</button>
+      <button id="copy0">Copy All!</button>
+    </div>
+
+    <div style="clear: both"></div>
+
+    <div id="links_outer_wrapper">
+      <h3>Links:</h3>
+      <div id="links_wrapper">
+        <table cellspacing=0 cellpadding=0 id="links">
+          <tr>
+            <th><input type="checkbox" checked="checked" id="toggle_all"></th>
+            <th align="left">URL</th>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+  </body>
+</html>
