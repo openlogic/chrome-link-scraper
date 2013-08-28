@@ -1,1 +1,5 @@
-All code is copyright OpenLogic, Inc. except where noted in code comments. 
+This is the source code for a Google Chrome extension.
+
+Scrape all the links from a page (and optionally "child" pages) filtered by extension or custom regex.
+
+All code is copyright OpenLogic, Inc. except where noted in code comments. See LICENSE for liense information.
