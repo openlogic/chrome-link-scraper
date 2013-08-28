@@ -1,15 +1,20 @@
+// Code marked "Chromium"
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+// found at https://code.google.com/google_bsd_license.html
 
-// This extension demonstrates using chrome.downloads.download() to
-// download URLs.
+// Code marked "OpenLogic"
+// Copyright (c) OpenLogic, Inc.
+// See LICENSE file for license information.
 //
-// (hacked by Jeff Gran at openlogic to copy links to clipboard instead)
 
+
+// Chromium
 var allLinks = [];
 var visibleLinks = [];
 
+
+// Chromium
 // Display all visible links.
 function showLinks() {
   var linksTable = document.getElementById('links');
@@ -36,6 +41,8 @@ function showLinks() {
   }
 }
 
+
+// Chromium
 // Toggle the checked state of all visible links.
 function toggleAll() {
   var checked = document.getElementById('toggle_all').checked;
@@ -46,6 +53,7 @@ function toggleAll() {
 
 function get_checked_links() {
   var urls = [];
+  // Chromium
   for (var i = 0; i < visibleLinks.length; ++i) {
     if (document.getElementById('check' + i).checked) {
       urls.push(visibleLinks[i]);
@@ -54,6 +62,7 @@ function get_checked_links() {
   return urls;
 }
 
+// OpenLogic
 // Copy all visible checked links.
 function copyCheckedLinks() {
   var urls = get_checked_links();
@@ -61,6 +70,8 @@ function copyCheckedLinks() {
   window.close();
 }
 
+
+// OpenLogic
 // Copy provided text to the clipboard.
 // 
 // Usage:
@@ -75,6 +86,8 @@ function copyTextToClipboard(text) {
   body.removeChild(copyFrom);
 }
 
+
+// OpenLogic
 function do_filter_radios(f){
   var radios = document.getElementsByName("filters");
   for(var i = 0; i < radios.length; i++){
@@ -82,6 +95,7 @@ function do_filter_radios(f){
   }
 }
 
+// OpenLogic
 function get_current_filter_radio(){
   var val;
   do_filter_radios(function(radio){
@@ -92,6 +106,7 @@ function get_current_filter_radio(){
   return val;
 }
 
+// OpenLogic
 function get_current_filter_value() {
   var radio = get_current_filter_radio();
   var val;
@@ -104,6 +119,7 @@ function get_current_filter_value() {
 }
 
 
+// Chromium
 // Re-filter allLinks into visibleLinks and reshow visibleLinks.
 function filterLinks() {
   var filterRadio = get_current_filter_radio();
@@ -138,6 +154,7 @@ function filterLinks() {
   showLinks();
 }
 
+// OpenLogic
 function getSecondLevelLinks() {
   chrome.windows.getCurrent(function (currentWindow) {
     chrome.tabs.query({active: true, windowId: currentWindow.id},
@@ -149,6 +166,7 @@ function getSecondLevelLinks() {
   });
 }
 
+// Chromium
 // Add links to allLinks and visibleLinks, sort and show them.  send_links.js is
 // injected into all frames of the active tab, so this listener may be called
 // multiple times.
@@ -164,7 +182,8 @@ chrome.extension.onRequest.addListener(function(links) {
   showLinks();
 });
 
-//
+
+// OpenLogic
 // when new DOM content is loaded, trigger all frames to send us their links again.
 // we might have new ones now. (this is for when we inject frames into the page to get
 // second-level links)
@@ -173,6 +192,7 @@ chrome.webNavigation.onDOMContentLoaded.addListener(function(details){
 });
 
 
+// OpenLogic
 // // callback for when the popup is closed down. here we clean up any iframes we inserted.
 // doesn't work :(
 // chrome.runtime.onSuspend.addListener(function(){
@@ -187,6 +207,7 @@ chrome.webNavigation.onDOMContentLoaded.addListener(function(details){
 
 
 function getLinksFromAllFrames(){
+  // Chromium
   chrome.windows.getCurrent(function (currentWindow) {
     chrome.tabs.query({active: true, windowId: currentWindow.id},
                       function(activeTabs) {
@@ -196,6 +217,7 @@ function getLinksFromAllFrames(){
   });
 }
 
+// Chromium
 // Set up event handlers and inject send_links.js into all frames in the active
 // tab.
 window.onload = function() {

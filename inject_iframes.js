@@ -1,5 +1,5 @@
 // Copyright OpenLogic, Inc.
-//
+// See LICENSE file for license information.
 //
 
 // only add iframes for "text/html" pages, not actual file downloads.
