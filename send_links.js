@@ -7,23 +7,37 @@
 
 // This copyrighted code has been slightly modified by OpenLogic, Inc.
 // Modifications include moving the code into callable functions.
-
 window.getLinks = function() {
-  var links = [].slice.apply(document.getElementsByTagName('a'));
-  links = links.map(function(element) {
-    // Return an anchor's href attribute, stripping any URL fragment (hash '#').
-    // If the html specifies a relative path, chrome converts it to an absolute
-    // URL.
-    var href = element.href;
-    var hashIndex = href.indexOf('#');
-    if (hashIndex >= 0) {
-      href = href.substr(0, hashIndex);
-    }
-    return href;
-  });
+  try {
+    var domain = window.parent.location.origin;
+    var root = (domain == 'http://sourceforge.net' ? document.getElementById('files_list') : document);
+    var links = [].slice.apply(root.getElementsByTagName('a'));
+    links = links.map(function(element) {
+      // Proceed only if the link is in the same domain.
+      if (element.href.indexOf(domain) == 0) {
+        // Return an anchor's href attribute, stripping any URL fragment (hash '#').
+        // If the html specifies a relative path, chrome converts it to an absolute
+        // URL.
+        var href = element.href;
+        var hashIndex = href.indexOf('#');
+        if (hashIndex >= 0) {
+          href = href.substr(0, hashIndex);
+        }
+        return href;
+      }
+    });
 
-  links.sort();
-  return links;
+    // Remove undefined from the links array.
+    for (var n = links.length - 1; n >= 0; --n) {
+      if (links[n] == undefined)
+        links.splice(n, 1);
+    }
+
+    links.sort();
+    return links;
+  } catch (error) {
+    return [];
+  }
 }
 
 
