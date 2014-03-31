@@ -1,12 +1,9 @@
-// Copyright OpenLogic, Inc.
-// See LICENSE file for license information.
-//
 {
   "manifest_version": 2,
 
   "name": "Openlogic Link Scraper",
   "description": "This extension can scrape all the links (optionally filtered by regex) from a page into the clipboard.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "permissions": [
     "tabs",
     "clipboardWrite",
