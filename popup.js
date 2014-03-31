@@ -12,6 +12,10 @@
 // Chromium
 var allLinks = [];
 var visibleLinks = [];
+var totalRequests = 0;
+var totalReceived = 0;
+var errorLinks = [];
+var statusDisplay = {};
 
 
 // Chromium
@@ -62,12 +66,103 @@ function get_checked_links() {
   return urls;
 }
 
+function convert_sourceforge_links(urls) {
+  errorLinks = [];
+  var downloadLinks = [];
+  var totalUrlCount = urls.length;
+
+  for (var n = 0; n < totalUrlCount; ++n)
+  {
+    // Get the components of this url
+    var urlComponents = urls[n].split('/');
+    if (urlComponents.pop() != 'download')
+      downloadLinks.push(urls[n]);  // not a download redirect link
+    else
+    {
+      var projectName = urlComponents[urlComponents.indexOf('projects') + 1];
+      var fileName = urlComponents.
+                       slice(urlComponents.indexOf('files') + 1).
+                       join('/');
+
+      // Get the mirror sites for this url
+      // Note: This uses the synchronous request.  It is not ideal but is more
+      //       deterministic.
+      var mirrorListUrl = [
+        "http://sourceforge.net/settings/mirror_choices?projectname=",
+        projectName,
+        "&filename=",
+        fileName
+      ].join('');
+
+      var ok = true;
+      var mirrorList = {};
+      $.ajax({ url: mirrorListUrl,
+               dataType: 'text',
+               async: false,
+               type: 'GET',
+               success: function(data) {
+                 mirrorList = $('#mirrorList', $.parseHTML(data));
+               },
+               error: function() {
+                 errorLinks.push(urls[n]);
+                 ok = false;
+               }
+      });
+
+      if (ok)
+      {
+        var mirrorNames = [];
+        $('li', mirrorList).each(function(index) {
+          mirrorNames.push($(this).attr('id'));
+        });
+        mirrorNames.shift();  // Remove the first element because it is 'autoselect'.
+
+        // Pick a random mirror site
+        var mid = Math.floor((Math.random() * mirrorNames.length));
+
+        // Construct the direct download url
+        downloadLinks.push([
+          "http://",
+          mirrorNames[mid],
+          ".dl.sourceforge.net/project/",
+          projectName,
+          '/',
+          fileName
+        ].join(''));
+      }
+    }
+  }
+
+  return downloadLinks;
+}
+
+function showCopying() {
+  statusDisplay.html('<span style="color: blue;">Copying...</span>');
+}
+
 // OpenLogic
 // Copy all visible checked links.
 function copyCheckedLinks() {
   var urls = get_checked_links();
-  copyTextToClipboard(urls.join("\n"));
-  window.close();
+  if (urls[0].indexOf('http://sourceforge.net') == 0)
+    urls = convert_sourceforge_links(urls);
+  statusDisplay.html('<span style="color: green;">Complete</span>');
+  result = copyTextToClipboard(urls.join("\n"));
+  if (errorLinks.length > 0)
+  {
+    visibleLinks = errorLinks;
+    var errorText = '<span style="color: red;">' +
+        'These following links were not copied because their mirror site info could not be retrieved.' +
+        '</span>';
+    statusDisplay.html(errorText);
+    showLinks();
+    result.body.removeChild(result.child);
+  }
+  else
+  {
+    result.body.removeChild(result.child);
+    window.close();
+  }
 }
 
 
@@ -83,7 +178,7 @@ function copyTextToClipboard(text) {
   body.appendChild(copyFrom);
   copyFrom.select();
   document.execCommand('copy');
-  body.removeChild(copyFrom);
+  return { body: body, child: copyFrom };
 }
 
 
@@ -158,11 +253,10 @@ function filterLinks() {
 function getSecondLevelLinks() {
   chrome.windows.getCurrent(function (currentWindow) {
     chrome.tabs.query({active: true, windowId: currentWindow.id},
-                      function(activeTabs) {
-                        var tabId = activeTabs[0].id;
-                        chrome.tabs.executeScript(tabId, {file: 'inject_iframes.js', allFrames: true});
-                        chrome.tabs.insertCSS(tabId, {code: '.hidden {display: none;}', allFrames: true});
-                      });
+      function(activeTabs) {
+        var tabId = activeTabs[0].id;
+        chrome.tabs.executeScript(tabId, {file: 'send_second_level_links.js', allFrames: true});
+      });
   });
 }
 
@@ -182,14 +276,36 @@ chrome.extension.onRequest.addListener(function(links) {
   showLinks();
 });
 
+chrome.runtime.onMessage.addListener(
+  function(request, sender, sendResponse) {
+    if (request.total != undefined && request.total != null)
+    {
+      totalRequests = request.total;
+      statusDisplay.html('<span style="color: darkslategray;">Estimating progress...</span>');
+    }
+
+    if (request.remainder != undefined && request.remainder != null)
+    {
+      var content = '<span style="color: green;">Complete</span>';
+      totalReceived += 1;
+      if (request.remainder > 0 && totalReceived < totalRequests)
+      {
+        var partial = Math.round(100.0 * (totalRequests - request.remainder) / totalRequests);
+        content = '<span style="color: blue;">' + partial.toString() + '% done...</span>';
+      }
+      statusDisplay.html(content);
+    }
+  }
+);
+
 
 // OpenLogic
 // when new DOM content is loaded, trigger all frames to send us their links again.
 // we might have new ones now. (this is for when we inject frames into the page to get
 // second-level links)
-chrome.webNavigation.onDOMContentLoaded.addListener(function(details){
-  getLinksFromAllFrames();
-});
+//chrome.webNavigation.onDOMContentLoaded.addListener(function(details){
+//  getLinksFromAllFrames();
+//});
 
 
 // OpenLogic
@@ -227,8 +343,10 @@ window.onload = function() {
   do_filter_radios(function(radio){
     radio.onchange = filterLinks;
   })
-  
+
+  statusDisplay = $('#current_status');
   document.getElementById('toggle_all').onchange = toggleAll;
+  document.getElementById('copy0').onmousedown = showCopying;  // The only purpose of this is to display 'Copying...' in the status box.
   document.getElementById('copy0').onclick = copyCheckedLinks;
   document.getElementById('secondLevel').onclick = getSecondLevelLinks;
   getLinksFromAllFrames();
